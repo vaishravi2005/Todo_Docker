@@ -16,6 +16,8 @@ function Home() {
     const [editStatus, setEditStatus] = useState('pending');
     const navigate = useNavigate();
 
+    const backendUrl = process.env.REACT_APP_BACKEND || 'http://localhost:5000';
+
     useEffect(() => {
         setLoggedInUser(localStorage.getItem('loggedInUser'));
         fetchTasks();
@@ -30,9 +32,9 @@ function Home() {
 
     const fetchTasks = async () => {
         try {
-            const response = await fetch('http://localhost:8080/tasks', {
+            const response = await fetch(`${backendUrl}/tasks`, {
                 headers: {
-                    'Authorization': localStorage.getItem('token'),
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 },
             });
             const result = await response.json();
@@ -45,11 +47,11 @@ function Home() {
     const addTask = async () => {
         if (!newTask.trim()) return;
         try {
-            const response = await fetch('http://localhost:8080/tasks', {
+            const response = await fetch(`${backendUrl}/tasks`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('token'),
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 },
                 body: JSON.stringify({ title: newTask, dueDate }),
             });
@@ -67,10 +69,10 @@ function Home() {
 
     const deleteTask = async (taskId) => {
         try {
-            const response = await fetch(`http://localhost:8080/tasks/${taskId}`, {
+            const response = await fetch(`${backendUrl}/tasks/${taskId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': localStorage.getItem('token'),
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 },
             });
             const result = await response.json();
@@ -85,11 +87,11 @@ function Home() {
 
     const updateTask = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/tasks/${editingTaskId}`, {
+            const response = await fetch(`${backendUrl}/tasks/${editingTaskId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('token'),
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 },
                 body: JSON.stringify({ title: editValue, dueDate: editDueDate, status: editStatus }),
             });
@@ -109,7 +111,6 @@ function Home() {
 
     return (
         <div className="home-container">
-            
             <div className="header-bar">
                 <h1 className="welcome-text">Welcome {loggedInUser}</h1>
                 <button onClick={handleLogout} className="logout-button">Logout</button>
@@ -131,7 +132,6 @@ function Home() {
                 />
                 <button onClick={addTask} className="add-task-button">Add Task</button>
             </div>
-
 
             <div className="tasks-section">
                 <h2 className="tasks-heading">Your Tasks</h2>

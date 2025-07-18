@@ -1,19 +1,28 @@
-
+// Middlewares/Auth.js
 const jwt = require('jsonwebtoken');
-const ensureAuthenticated = (req, res, next) => {
-    const auth = req.headers['authorization'];
-    if (!auth) {
-        return res.status(403)
-            .json({ message: 'Unauthorized, JWT token is require' });
+const User = require('../Models/User');
+
+const ensureAuthenticated = async (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+        return res.status(403).json({ error: 'No token provided' });
     }
+
     try {
-        const decoded = jwt.verify(auth, process.env.JWT_SECRET);
-        req.user = decoded;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        const user = await User.findOne({ email: decoded.email });
+
+        if (!user) {
+            return res.status(403).json({ error: 'Invalid token user' });
+        }
+
+        req.user = { email: decoded.email }; // Attach to request
         next();
     } catch (err) {
-        return res.status(403)
-            .json({ message: 'Unauthorized, JWT token wrong or expired' });
+        console.error("Auth error:", err);
+        res.status(403).json({ error: 'Invalid token' });
     }
-}
+};
 
 module.exports = ensureAuthenticated;
